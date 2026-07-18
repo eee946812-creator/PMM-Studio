@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMM Studio</title>
+    
+    <!-- 🟢 วิธีแก้ไขให้โหลดไอคอนแท็บได้แน่นอน: ใช้ภาพ Modern X letter Logo.png เป็น Favicon -->
+    <link rel="icon" type="image/png" href="Modern X letter Logo.png">
+    <link rel="shortcut icon" type="image/png" href="Modern X letter Logo.png">
+    
+    <!-- ดึงฟอนต์ Inter และ Montserrat จาก Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f7f7f7; 
+            color: #000000;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* ล็อกหน้าจอเว็บไม่ให้เลื่อนขึ้นลง */
+            position: relative;
+        }
+
+        /* เอฟเฟกต์พื้นผิวทราย (Noise Overlay) */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* ----------------------------------
+           เเท็บด้านบน (Header)
+           ---------------------------------- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: #000000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 100%;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .brand-logo-img {
+            height: 34px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nav-item {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            padding: 8px 18px;
+            border-radius: 3px;
+            border: 1px solid transparent; 
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-item.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ----------------------------------
+           พื้นที่แสดงผลส่วนกลาง (Main Content Area)
+           ---------------------------------- */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            padding-top: 70px;
+            position: relative;
+        }
+
+        .page-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.98);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .page-container.active-page {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        /* ----------------------------------
+           หน้าหลัก (Home Page) - ดีไซน์ไร้กรอบ
+           ---------------------------------- */
+        .home-content {
+            max-width: 850px;
+            text-align: center;
+            padding: 0 40px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .home-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 500;
+            line-height: 1.6;
+            letter-spacing: 1px;
+            color: #000000;
+            word-wrap: break-word;
+        }
+
+        /* 🎬 ระบบอนิเมชั่นและกรอบบดบังขาวฟางด้านบน-ล่าง 🎬 */
+        .bg-animated-icons {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* ส่วนกรอบขาวฟาง ไล่เฉดสีกลืนเข้ากับพื้นหลังทั้งขอบบนและขอบล่าง */
+        .bg-animated-icons::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(to bottom, #f7f7f7 15%, rgba(247, 247, 247, 0) 100%);
+            z-index: 3;
+        }
+        .bg-animated-icons::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(to top, #f7f7f7 15%, rgba(247, 247, 247, 0) 100%);
+            z-index: 3;
+        }
+
+        .floating-icon {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            opacity: 0.85; 
+            filter: none; 
+            z-index: 2;
+        }
+
+        /* อนิเมชั่นเลื่อนลงพร้อมกันแบบคู่ขนานซ้ายขวาอย่างเป็นระเบียบ */
+        
+        /* ระลอกที่ 1: ดิ่งลงมาพร้อมกันในแนวนอนเดียวกัน ฝั่งซ้าย Roblox / ฝั่งขวา Unity */
+        .icon-roblox-left-1 {
+            left: 12%;
+            animation: fallStraight 16s linear infinite;
+            animation-delay: 0s;
+        }
+        .icon-unity-right-1 {
+            right: 12%;
+            animation: fallStraight 16s linear infinite;
+            animation-delay: 0s;
+        }
+
+        /* ระลอกที่ 2: ดิ่งลงมาพร้อมกัน สลับข้างต่อเนื่องทันทีตั้งแต่วินาทีแรกที่เข้าเว็บ */
+        .icon-unity-left-2 {
+            left: 12%;
+            animation: fallStraight 16s linear infinite;
+            animation-delay: -8s; 
+        }
+        .icon-roblox-right-2 {
+            right: 12%;
+            animation: fallStraight 16s linear infinite;
+            animation-delay: -8s;
+        }
+
+        /* คีย์เฟรมดิ่งตรง ผ่านเลเยอร์ขาวฟางได้อย่างไร้รอยต่อ */
+        @keyframes fallStraight {
+            0% {
+                top: -160px;
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.85; 
+            }
+            90% {
+                opacity: 0.85;
+            }
+            100% {
+                top: 100vh; 
+                opacity: 0;
+            }
+        }
+
+        /* ----------------------------------
+           หน้าอื่นๆ (About, Games, Music) - ดีไซน์แบบมีกรอบ GUI
+           ---------------------------------- */
+        .gui-card {
+            background-color: rgba(255, 255, 255, 0.4); 
+            border: 1px solid rgba(0, 0, 0, 0.06); 
+            border-radius: 4px; 
+            padding: 50px 80px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.03);
+            width: 90%;
+            max-width: 750px;
+            position: relative;
+        }
+
+        .gui-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
+            opacity: 0.6;
+            pointer-events: none;
+            border-radius: 3px;
+        }
+
+        .section-headline {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            color: #000000;
+            position: relative;
+            z-index: 3;
+        }
+
+        .sub-text {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #333333;
+            letter-spacing: 0.5px;
+            font-weight: 400;
+            position: relative;
+            z-index: 3;
+        }
+
+        /* ----------------------------------
+           ข้อความลิขสิทธิ์ด้านล่างสุด (Footer)
+           ---------------------------------- */
+        .footer-text {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: rgba(0, 0, 0, 0.4); 
+            text-transform: uppercase;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- แถบเมนูด้านบน -->
+    <header>
+        <div class="brand-container" onclick="switchPage('home')">
+            <img class="brand-logo-img" src="Modern X letter Logo.png" alt="Logo">
+            <div class="logo-text">PMM Studio</div>
+        </div>
+        <nav>
+            <div id="nav-home" class="nav-item active" onclick="switchPage('home')">Home</div>
+            <div id="nav-about" class="nav-item" onclick="switchPage('about')">About</div>
+            <div id="nav-games" class="nav-item" onclick="switchPage('games')">Games</div>
+            <!-- 🟢 เพิ่มเมนูนำทางไปยังหน้า Music -->
+            <div id="nav-music" class="nav-item" onclick="switchPage('music')">Music</div>
+        </nav>
+    </header>
+
+    <!-- พื้นที่แสดงผลเนื้อหาหลัก -->
+    <main>
+        
+        <!-- หน้าหลัก (Home) -->
+        <div id="page-home" class="page-container active-page">
+            <div class="bg-animated-icons">
+                <img class="floating-icon icon-roblox-left-1" 
+                     src="https://devforum-uploads.s3.dualstack.us-east-2.amazonaws.com/uploads/original/4X/0/e/e/0eeeb19633422b1241f4306419a0f15f39d58de9.png" 
+                     alt="Roblox" crossorigin="anonymous" loading="eager" decoding="async">
+                     
+                <img class="floating-icon icon-unity-right-1" 
+                     src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/brands/unity-3pd9m9p8w1sm9x4gne7nqj.png/unity-qbnpgvdrvim8s7g12gq5q3.png?_a=DATAiZAAZAA0" 
+                     alt="Unity" crossorigin="anonymous" loading="eager" decoding="async">
+                
+                <img class="floating-icon icon-unity-left-2" 
+                     src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/brands/unity-3pd9m9p8w1sm9x4gne7nqj.png/unity-qbnpgvdrvim8s7g12gq5q3.png?_a=DATAiZAAZAA0" 
+                     alt="Unity" crossorigin="anonymous" loading="eager" decoding="async">
+                     
+                <img class="floating-icon icon-roblox-right-2" 
+                     src="https://devforum-uploads.s3.dualstack.us-east-2.amazonaws.com/uploads/original/4X/0/e/e/0eeeb19633422b1241f4306419a0f15f39d58de9.png" 
+                     alt="Roblox" crossorigin="anonymous" loading="eager" decoding="async">
+            </div>
+            
+            <div class="home-content">
+                <h1 class="home-text">
+                    PMM Studio creates games in Roblox and Unity as well as music and software all completely free of charge.
+                </h1>
+            </div>
+        </div>
+
+        <!-- หน้าเกี่ยวกับ (About) -->
+        <div id="page-about" class="page-container">
+            <div class="gui-card">
+                <h2 class="section-headline">About Us</h2>
+                <p class="sub-text">
+                    PMM Studio is a creative collective established in 2023, though there isn't much to show for it just yet.
+                </p>
+            </div>
+        </div>
+
+        <!-- หน้าเกม (Games) -->
+        <div id="page-games" class="page-container">
+            <div class="gui-card">
+                <h2 class="section-headline">Games</h2>
+                <p class="sub-text" style="color: rgba(0,0,0,0.4); font-style: italic;">
+                    Coming Soon
+                </p>
+            </div>
+        </div>
+
+        <!-- 🟢 หน้าเพลง (Music) -->
+        <div id="page-music" class="page-container">
+            <div class="gui-card">
+                <h2 class="section-headline">Music</h2>
+                <p class="sub-text" style="color: rgba(0,0,0,0.4); font-style: italic;">
+                    Coming Soon
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ส่วนท้ายแสดงลิขสิทธิ์กึ่งกลางล่างสุด -->
+    <div class="footer-text">@PMM Studio 2023 - 2026</div>
+
+    <script>
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById('page-' + pageId).classList.add('active-page');
+            document.getElementById('nav-' + pageId).classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
